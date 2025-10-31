@@ -34,8 +34,8 @@ This repository currently contains Python scripts for scaling up/down resources 
 git clone https://github.com/ruchany13/kube-palamar.git
 cd kube-palamar
 
-# Install required packages
-pip install -r requirements.txt
+# Setup - Install required packages
+./cluster.sh setup
 ```
 
 ### 2. Adding Annotations (Optional)
@@ -53,17 +53,22 @@ kubectl annotate deployment nginx-deployment -n production "order=1"
 kubectl annotate statefulset mysql-sts -n production "order=2"
 ```
 
+Alternatively, you can prepare `order.txt` file with all annotation commands and run:
+```bash
+./cluster.sh annotate
+```
+
 ### 3. Scaling Down Namespace
 
 Scales all resources in the namespace to 0 replicas and stores the current replica counts as annotations:
 
 ```bash
-python3 down_cluster.py <namespace>
+./cluster.sh down <namespace>
 ```
 
 **Example:**
 ```bash
-python3 down_cluster.py production
+./cluster.sh down production
 ```
 
 **What it does:**
@@ -77,12 +82,12 @@ python3 down_cluster.py production
 Restores a previously scaled-down namespace to its original replica counts:
 
 ```bash
-python3 up_cluster.py <namespace>
+./cluster.sh up <namespace>
 ```
 
 **Example:**
 ```bash
-python3 up_cluster.py production
+./cluster.sh up production
 ```
 
 **What it does:**
@@ -96,11 +101,11 @@ python3 up_cluster.py production
 
 ```
 kube-palamar/
-├── down_cluster.py         # Script to scale down namespace
-├── up_cluster.py           # Script to scale up namespace
-├── cluster.sh              # Bash wrapper script (legacy)
+├── cluster.sh              # Main wrapper script - use this for all operations
+├── down_cluster.py         # Python script to scale down namespace
+├── up_cluster.py           # Python script to scale up namespace
 ├── requirements.txt        # Python dependencies
-├── order.txt              # Namespace ordering file (optional)
+├── order.txt               # Namespace ordering file (optional)
 └── README.md
 ```
 
@@ -115,6 +120,7 @@ kube-palamar/
 - ✅ Store replica counts as annotations
 - ✅ Sequential startup support (order annotation)
 - ✅ Namespace-based operations
+- ✅ Simple shell wrapper for easy usage
 
 ### 🔜 Future (Go + Web UI)
 - 🔜 Performant CLI written in Go
@@ -125,10 +131,25 @@ kube-palamar/
 
 ---
 
+## 🎯 Quick Start
+
+```bash
+# 1. Setup
+./cluster.sh setup
+
+# 2. Scale down a namespace (saves current state)
+./cluster.sh down production
+
+# 3. Scale up the namespace (restores previous state)
+./cluster.sh up production
+```
+
+---
+
 ## ⚠️ Important Notes
 
-1. **First Usage:** You must run `down_cluster.py` first, then use `up_cluster.py`.
-2. **Annotation Requirement:** The `up_cluster.py` script requires resources to have the `replica_annotate` annotation.
+1. **First Usage:** You must run `./cluster.sh down <namespace>` first to save the current replica counts, then use `./cluster.sh up <namespace>` to restore them.
+2. **Annotation Requirement:** The up script requires resources to have the `replica_annotate` annotation (automatically added by down script).
 3. **DaemonSet Behavior:** DaemonSets are managed using node selectors instead of replica counts.
 4. **Kubeconfig:** Scripts use the default kubeconfig (`~/.kube/config`).
 

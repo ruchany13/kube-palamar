@@ -32,8 +32,8 @@ Bu repo şu anda Kubernetes namespace'lerinde kaynakları up/down yapan Python s
 git clone https://github.com/ruchany13/kube-palamar.git
 cd kube-palamar
 
-# Gerekli paketleri yükleyin
-pip install -r requirements.txt
+# Kurulum - Gerekli paketleri yükleyin
+./cluster.sh setup
 ```
 
 ### 2. Annotation Ekleme (İsteğe Bağlı)
@@ -51,17 +51,22 @@ kubectl annotate deployment nginx-deployment -n production "order=1"
 kubectl annotate statefulset mysql-sts -n production "order=2"
 ```
 
+Alternatif olarak, tüm annotation komutlarını `order.txt` dosyasına yazıp şu komutu çalıştırabilirsiniz:
+```bash
+./cluster.sh annotate
+```
+
 ### 3. Namespace'i Kapatma (Scale Down)
 
 Namespace'teki tüm kaynakları 0 replica'ya çeker ve mevcut replica sayılarını annotation olarak saklar:
 
 ```bash
-python3 down_cluster.py <namespace>
+./cluster.sh down <namespace>
 ```
 
 **Örnek:**
 ```bash
-python3 down_cluster.py production
+./cluster.sh down production
 ```
 
 **Ne yapar?**
@@ -75,12 +80,12 @@ python3 down_cluster.py production
 Daha önce kapatılmış bir namespace'i orijinal replica sayılarına geri döndürür:
 
 ```bash
-python3 up_cluster.py <namespace>
+./cluster.sh up <namespace>
 ```
 
 **Örnek:**
 ```bash
-python3 up_cluster.py production
+./cluster.sh up production
 ```
 
 **Ne yapar?**
@@ -94,11 +99,11 @@ python3 up_cluster.py production
 
 ```
 kube-palamar/
-├── down_cluster.py         # Namespace'i kapatma scripti
-├── up_cluster.py           # Namespace'i açma scripti
-├── cluster.sh              # Bash wrapper script (eski versiyon)
+├── cluster.sh              # Ana wrapper script - tüm işlemler için bunu kullanın
+├── down_cluster.py         # Namespace'i kapatma scripti (Python)
+├── up_cluster.py           # Namespace'i açma scripti (Python)
 ├── requirements.txt        # Python bağımlılıkları
-├── order.txt              # Namespace sıralama dosyası (opsiyonel)
+├── order.txt               # Namespace sıralama dosyası (opsiyonel)
 └── README.md
 ```
 
@@ -113,6 +118,7 @@ kube-palamar/
 - ✅ Replica sayılarını annotation olarak saklama
 - ✅ Sıralı başlatma desteği (order annotation)
 - ✅ Namespace bazlı işlem
+- ✅ Kolay kullanım için shell wrapper
 
 ### 🔜 Gelecek (Go + Web UI)
 - 🔜 Go ile yazılmış performanslı CLI
@@ -123,10 +129,25 @@ kube-palamar/
 
 ---
 
+## 🎯 Hızlı Başlangıç
+
+```bash
+# 1. Kurulum
+./cluster.sh setup
+
+# 2. Namespace'i kapat (mevcut durumu saklar)
+./cluster.sh down production
+
+# 3. Namespace'i aç (önceki duruma geri döner)
+./cluster.sh up production
+```
+
+---
+
 ## ⚠️ Dikkat Edilmesi Gerekenler
 
-1. **İlk Kullanımda:** Önce `down_cluster.py` çalıştırılmalı, ardından `up_cluster.py` kullanılmalıdır.
-2. **Annotation Gerekliliği:** `up_cluster.py` scripti çalışması için kaynakların `replica_annotate` annotation'ına ihtiyaç duyar.
+1. **İlk Kullanımda:** Önce `./cluster.sh down <namespace>` çalıştırılarak mevcut replica sayıları kaydedilmeli, ardından `./cluster.sh up <namespace>` ile geri yüklenmelidir.
+2. **Annotation Gerekliliği:** Up scripti için kaynakların `replica_annotate` annotation'ına ihtiyaç vardır (down scripti tarafından otomatik eklenir).
 3. **DaemonSet Davranışı:** DaemonSet'ler replica sayısı yerine node selector ile yönetilir.
 4. **Kubeconfig:** Script'ler varsayılan kubeconfig'i kullanır (`~/.kube/config`).
 
