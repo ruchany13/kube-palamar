@@ -23,15 +23,18 @@ Help()
 
 
 if [ $1 == "up" ]; then
-$python3_path up_cluster.py $2
+$python3_path Python/up_cluster.py $2
 
 elif [ $1 == "down" ]; then
-$python3_path down_cluster.py $2
+$python3_path Python/down_cluster.py $2
 
 elif [ $1 == "setup" ]; then
 pip install -r requirements.txt &> setup.log ||  pip install -r requirements.txt --break-system-packages &> setup.log
 echo "Setup is complete 
-Log file is $current_path/setup.log"
+Log file is $current_path/Python/setup.log"
+
+elif [ $1 == "annotate" ]; then
+. order.txt
 
 else
 Help
